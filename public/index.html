@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipping Analytics Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Clipping Analytics Dashboard</h1>
+            <p class="subtitle">Track performance of clips across TikTok, YouTube, and Twitter/X</p>
+        </header>
+
+        <div class="controls">
+            <button id="refreshBtn" class="btn btn-primary">
+                <span id="refreshText">🔄 Refresh Stats</span>
+                <span id="loadingSpinner" class="spinner" style="display: none;">⏳ Loading...</span>
+            </button>
+            <button id="addClipBtn" class="btn btn-secondary">➕ Add Clip</button>
+        </div>
+
+        <!-- Add Clip Form (Hidden by default) -->
+        <div id="addClipForm" class="form-container" style="display: none;">
+            <h3>Add New Clip</h3>
+            <form id="clipForm">
+                <div class="form-group">
+                    <label>Clipper Name:</label>
+                    <input type="text" id="clipperName" required>
+                </div>
+                <div class="form-group">
+                    <label>Platform:</label>
+                    <select id="platform" required>
+                        <option value="tiktok">TikTok</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="twitter">Twitter/X</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Clip URL:</label>
+                    <input type="url" id="clipUrl" placeholder="https://..." required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Clip</button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Summary Stats -->
+        <div id="summaryStats" class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalClips">-</div>
+                <div class="stat-label">Total Clips</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalViews">-</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalLikes">-</div>
+                <div class="stat-label">Total Likes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalEngagement">-</div>
+                <div class="stat-label">Total Engagement</div>
+            </div>
+        </div>
+
+        <!-- Clipper Stats -->
+        <div id="clipperStats" class="clipper-stats">
+            <div id="loadingMessage" class="loading-message">
+                Click "Refresh Stats" to load analytics data
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
