@@ -31,9 +31,13 @@ async function writeClips(data) {
 // Extract video ID from URL
 function extractVideoId(url, platform) {
   try {
-    if (platform === 'tiktok') {
-      const match = url.match(/video\/(\d+)/);
-      return match ? match[1] : null;
+    if (platform === 'facebook') {
+      // Facebook video/post ID can be in various formats
+      const match = url.match(/\/videos\/(\d+)|\/posts\/(\d+)|\/(\d+)\/videos\/(\d+)|story_fbid=(\d+)/);
+      if (match) {
+        return match[1] || match[2] || match[4] || match[5];
+      }
+      return null;
     } else if (platform === 'youtube') {
       const match = url.match(/shorts\/([a-zA-Z0-9_-]+)|v=([a-zA-Z0-9_-]+)/);
       return match ? (match[1] || match[2]) : null;
@@ -47,31 +51,36 @@ function extractVideoId(url, platform) {
   return null;
 }
 
-// Fetch TikTok video stats
-async function fetchTikTokStats(videoId) {
+// Fetch Facebook video/post stats
+async function fetchFacebookStats(postId) {
   try {
-    // Note: TikTok API requires proper authentication and app setup
-    // This is a placeholder - you'll need to implement based on TikTok's API docs
-    // For now, returning mock data structure
-    console.log('Fetching TikTok stats for:', videoId);
+    const accessToken = process.env.FACEBOOK_ACCESS_TOKEN;
+    if (!accessToken) {
+      return { views: 0, likes: 0, comments: 0, shares: 0, error: 'Facebook API token not configured' };
+    }
 
-    // Uncomment when you have API credentials:
-    // const response = await axios.get(`https://open.tiktokapis.com/v2/video/query/`, {
-    //   headers: {
-    //     'Authorization': `Bearer ${process.env.TIKTOK_API_KEY}`
-    //   },
-    //   params: { video_id: videoId }
-    // });
+    console.log('Fetching Facebook stats for:', postId);
 
-    return {
-      views: 0,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      error: 'TikTok API not configured'
-    };
+    // Facebook Graph API - get video/post insights
+    const response = await axios.get(`https://graph.facebook.com/v18.0/${postId}`, {
+      params: {
+        fields: 'engagement,likes.summary(true),comments.summary(true),shares',
+        access_token: accessToken
+      }
+    });
+
+    if (response.data) {
+      const data = response.data;
+      return {
+        views: data.engagement?.count || 0,
+        likes: data.likes?.summary?.total_count || 0,
+        comments: data.comments?.summary?.total_count || 0,
+        shares: data.shares?.count || 0
+      };
+    }
+    return { views: 0, likes: 0, comments: 0, shares: 0, error: 'Post not found' };
   } catch (error) {
-    console.error('TikTok API error:', error.message);
+    console.error('Facebook API error:', error.message);
     return { views: 0, likes: 0, comments: 0, shares: 0, error: error.message };
   }
 }
@@ -192,8 +201,8 @@ app.get('/api/stats/refresh', async (req, res) => {
     for (const clip of data.clips) {
       let stats = {};
 
-      if (clip.platform === 'tiktok' && clip.videoId) {
-        stats = await fetchTikTokStats(clip.videoId);
+      if (clip.platform === 'facebook' && clip.videoId) {
+        stats = await fetchFacebookStats(clip.videoId);
       } else if (clip.platform === 'youtube' && clip.videoId) {
         stats = await fetchYouTubeStats(clip.videoId);
       } else if (clip.platform === 'twitter' && clip.videoId) {
@@ -236,8 +245,8 @@ app.get('/api/stats/by-clipper', async (req, res) => {
       }
 
       let stats = {};
-      if (clip.platform === 'tiktok' && clip.videoId) {
-        stats = await fetchTikTokStats(clip.videoId);
+      if (clip.platform === 'facebook' && clip.videoId) {
+        stats = await fetchFacebookStats(clip.videoId);
       } else if (clip.platform === 'youtube' && clip.videoId) {
         stats = await fetchYouTubeStats(clip.videoId);
       } else if (clip.platform === 'twitter' && clip.videoId) {
